@@ -5,6 +5,9 @@
 module ParserCombinators where
 
 import Control.Applicative
+import Control.Monad
+import Data.Char
+import Data.Functor
 import Parser
 
 -- | Parses single character
@@ -16,7 +19,7 @@ import Parser
 -- >>> parse (char 'b') "abc"
 -- Failed [Position 0 (Unexpected 'a')]
 char :: Char -> Parser Char
-char = error "TODO: define char"
+char = satisfy . (==)
 
 -- | Parses given string
 --
@@ -27,7 +30,7 @@ char = error "TODO: define char"
 -- >>> parse (string "ba") "abc"
 -- Failed [Position 0 (Unexpected 'a')]
 string :: String -> Parser String
-string = error "TODO: define string"
+string = traverse char
 
 -- | Skips zero or more space characters
 --
@@ -40,7 +43,7 @@ string = error "TODO: define string"
 -- >>> parse (spaces *> string "bar") "bar"
 -- Parsed "bar" (Position 3 "")
 spaces :: Parser ()
-spaces = error "TODO: define spaces"
+spaces = many (char ' ') $> ()
 
 -- | Tries to consecutively apply each of given list of parsers until one succeeds.
 -- Returns the *first* succeeding parser as result or 'empty' if all of them failed.
@@ -54,9 +57,30 @@ spaces = error "TODO: define spaces"
 -- >>> parse (choice [string "ba", string "bar"]) "bar"
 -- Parsed "ba" (Position 2 "r")
 choice :: (Foldable t, Alternative f) => t (f a) -> f a
-choice = error "TODO: define choice"
+choice = asum
 
 -- Discover and implement more useful parser combinators below
 --
 -- - <https://hackage.haskell.org/package/parser-combinators-1.3.0/docs/Control-Applicative-Combinators.html>
 -- - <https://hackage.haskell.org/package/parsec-3.1.18.0/docs/Text-Parsec-Char.html>
+
+option :: a -> Parser a -> Parser a
+option a p = p <|> pure a
+
+sepBy1 :: Parser a -> Parser b -> Parser [a]
+sepBy1 a sep = (:) <$> a <*> many (sep *> a)
+
+count :: Int -> Parser a -> Parser [a]
+count = replicateM
+
+nonZeroDigit :: Parser Char
+nonZeroDigit = satisfy (\c -> isDigit c && c /= '0')
+
+digit :: Parser Char
+digit = satisfy isDigit
+
+hexDigit :: Parser Char
+hexDigit = satisfy isHexDigit
+
+oneOf :: [Char] -> Parser Char
+oneOf = satisfy . flip elem

@@ -4,7 +4,10 @@
 
 module Task1 where
 
+import Control.Applicative
+import Data.Functor
 import Parser
+import ParserCombinators
 
 -- | Parses natural number (including zero)
 --
@@ -21,7 +24,7 @@ import Parser
 -- >>> parse nat "123abc"
 -- Parsed 123 (Input 3 "abc")
 nat :: Parser Integer
-nat = error "TODO: define nat"
+nat = read <$> some digit
 
 -- | Parses integer number
 --
@@ -38,4 +41,6 @@ nat = error "TODO: define nat"
 -- >>> parse int "123abc"
 -- Parsed 123 (Input 3 "abc")
 int :: Parser Integer
-int = error "TODO: define int"
+int = sign <*> nat
+  where
+    sign = option id (char '-' $> negate)

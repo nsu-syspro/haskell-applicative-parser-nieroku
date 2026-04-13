@@ -4,7 +4,10 @@
 
 module Task2 where
 
+import Control.Applicative
+import Data.Functor
 import Parser
+import ParserCombinators
 
 -- | Date representation
 --
@@ -60,4 +63,39 @@ newtype Year = Year Int deriving (Show, Eq)
 -- >>> parse date "12/12/2012"
 -- Failed [PosError 2 (Unexpected '/'),PosError 0 (Unexpected '1')]
 date :: Parser Date
-date = error "TODO: define date"
+date = choice [dotFormat, hyphenFormat, usFormat]
+  where
+    dotFormat = Date <$> day <* char '.' <*> month <* char '.' <*> year
+    hyphenFormat = Date <$> day <* char '-' <*> month <* char '-' <*> year
+    usFormat = flip Date <$> monthName <* char ' ' <*> usDay <* char ' ' <*> year
+
+    usDay =
+      Day . read
+        <$> choice
+          [ sequenceA [char '1', digit],
+            sequenceA [char '2', digit],
+            string "30",
+            string "31",
+            sequenceA [nonZeroDigit]
+          ]
+    day =
+      Day . read
+        <$> choice
+          [ sequenceA [char '0', digit],
+            sequenceA [char '1', digit],
+            sequenceA [char '2', digit],
+            string "30",
+            string "31"
+          ]
+    month =
+      Month . read
+        <$> choice
+          [ sequenceA [char '0', nonZeroDigit],
+            string "10",
+            string "11",
+            string "12"
+          ]
+    year = Year . read <$> some digit
+
+    monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    monthName = Month <$> choice (map (\(i, name) -> string name $> i) (zip [1 ..] monthNames))

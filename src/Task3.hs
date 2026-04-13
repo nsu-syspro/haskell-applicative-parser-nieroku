@@ -4,9 +4,13 @@
 
 module Task3 where
 
-import Data.Char (toLower)
+import Control.Applicative
+import Data.Char
+import Data.Functor
 import Data.List (intercalate)
 import Parser
+import ParserCombinators
+import Prelude hiding (exponent)
 
 -- | JSON representation
 --
@@ -37,7 +41,77 @@ data JValue
 -- >>> parse json "{{}}"
 -- Failed [PosError 0 (Unexpected '{'),PosError 1 (Unexpected '{')]
 json :: Parser JValue
-json = error "TODO: define json"
+json = whitespace *> choice [jobject, jarray, jstring, jnumber, jbool, jnull]
+
+jobject :: Parser JValue
+jobject =
+  char '{'
+    *> choice
+      [ sepBy1 (whitespace *> keyValue <* whitespace) (char ','),
+        whitespace $> []
+      ]
+    <* char '}'
+    <&> JObject
+  where
+    keyValue = (,) <$> jsonstring <* whitespace <* char ':' <* whitespace <*> json
+
+jarray :: Parser JValue
+jarray =
+  char '['
+    *> choice
+      [ sepBy1 (whitespace *> json <* whitespace) (char ','),
+        whitespace $> []
+      ]
+    <* char ']'
+    <&> JArray
+
+jstring :: Parser JValue
+jstring = JString <$> jsonstring
+
+jnumber :: Parser JValue
+jnumber = JNumber . read . concat <$> sequenceA [sign, integer, fraction, exponent]
+  where
+    sign = option "" (string "-")
+    integer = choice [string "0", (:) <$> nonZeroDigit <*> many (digit)]
+    fraction = option "" ((:) <$> char '.' <*> some digit)
+    exponent = option "" (concat <$> sequenceA [choice [string "e", string "E"], choice [string "+", string "-", string ""], some digit])
+
+jbool :: Parser JValue
+jbool = choice [string "false" $> JBool False, string "true" $> JBool True]
+
+jnull :: Parser JValue
+jnull = string "null" $> JNull
+
+whitespace :: Parser ()
+whitespace = many (satisfy (flip elem [' ', '\n', '\r', '\t'])) $> ()
+
+jsonstring :: Parser String
+jsonstring = char '"' *> (concat <$> many (choice [character, escapeSequence, uEscapeSequence])) <* char '"'
+  where
+    character = (: "") <$> satisfy (not . \c -> isControl c || c `elem` ['"', '\\'])
+
+    -- escapeSequences :: [(Char, Char)]
+    -- escapeSequences =
+    --   [ ('"', '"'),
+    --     ('\\', '\\'),
+    --     ('/', '/'),
+    --     ('b', '\b'),
+    --     ('f', '\f'),
+    --     ('n', '\n'),
+    --     ('r', '\r'),
+    --     ('t', '\t')
+    --   ]
+    -- escapeSequence = (\a b -> [a, b]) <$> char '\\' <*> choice (map (\(code, c) -> char code $> c) escapeSequences)
+
+    escapeSequence = (choice . map string) ["\\\"", "\\\\", "\\/", "\\b", "\\f", "\\n", "\\r", "\\t"]
+
+    hexDigitToInt c
+      | '0' <= c && c <= '9' = ord c - ord '0'
+      | 'a' <= c && c <= 'f' = 10 + ord c - ord 'a'
+      | 'A' <= c && c <= 'F' = 10 + ord c - ord 'A'
+      | otherwise = undefined
+    readHex = foldl' (\acc d -> acc * 0x10 + hexDigitToInt d) 0 :: String -> Int
+    uEscapeSequence = (++) <$> string "\\u" <*> count 4 hexDigit <&> ((: "") . chr . readHex)
 
 -- * Rendering helpers
 
