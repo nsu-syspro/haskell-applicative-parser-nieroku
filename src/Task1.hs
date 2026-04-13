@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -Wall #-}
+
 -- The above pragma enables all warnings
 
 module Task1 where
@@ -19,7 +20,6 @@ import Parser
 -- Failed [PosError 0 (Unexpected 'a')]
 -- >>> parse nat "123abc"
 -- Parsed 123 (Input 3 "abc")
---
 nat :: Parser Integer
 nat = error "TODO: define nat"
 
@@ -37,6 +37,5 @@ nat = error "TODO: define nat"
 -- Failed [PosError 0 (Unexpected 'a')]
 -- >>> parse int "123abc"
 -- Parsed 123 (Input 3 "abc")
---
 int :: Parser Integer
 int = error "TODO: define int"

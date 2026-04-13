@@ -1,24 +1,24 @@
 {-# OPTIONS_GHC -Wall #-}
+
 -- The above pragma enables all warnings
 
 module Task3 where
 
-import Parser
 import Data.Char (toLower)
 import Data.List (intercalate)
+import Parser
 
 -- | JSON representation
 --
 -- See <https://www.json.org>
---
-data JValue =
-    JObject [(String, JValue)]
+data JValue
+  = JObject [(String, JValue)]
   | JArray [JValue]
   | JString String
   | JNumber Double
   | JBool Bool
   | JNull
- deriving (Show, Eq)
+  deriving (Show, Eq)
 
 -- | Parses JSON value
 --
@@ -36,7 +36,6 @@ data JValue =
 -- Parsed (JNumber 3.14) (Input 4 "")
 -- >>> parse json "{{}}"
 -- Failed [PosError 0 (Unexpected '{'),PosError 1 (Unexpected '{')]
---
 json :: Parser JValue
 json = error "TODO: define json"
 
@@ -49,19 +48,19 @@ render = concatMap readable . renderTokens
     -- Adds some nice spacing for readability
     readable ":" = ": "
     readable "," = ", "
-    readable s   = s
+    readable s = s
 
 -- | Renders given JSON value as list of separate tokens ready for pretty printing
 renderTokens :: JValue -> [String]
-renderTokens JNull        = ["null"]
-renderTokens (JBool b)    = [map toLower $ show b]
-renderTokens (JNumber d)  = [show d]
-renderTokens (JString s)  = ["\"" ++ s ++ "\""]
-renderTokens (JArray xs)  = ["["] ++ intercalate [","] (map renderTokens xs) ++ ["]"]
+renderTokens JNull = ["null"]
+renderTokens (JBool b) = [map toLower $ show b]
+renderTokens (JNumber d) = [show d]
+renderTokens (JString s) = ["\"" ++ s ++ "\""]
+renderTokens (JArray xs) = ["["] ++ intercalate [","] (map renderTokens xs) ++ ["]"]
 renderTokens (JObject xs) = ["{"] ++ intercalate [","] (map renderPair xs) ++ ["}"]
- where
-  renderPair :: (String, JValue) -> [String]
-  renderPair (k, v) = ["\"" ++ k ++ "\""] ++ [":"] ++ renderTokens v
+  where
+    renderPair :: (String, JValue) -> [String]
+    renderPair (k, v) = ["\"" ++ k ++ "\""] ++ [":"] ++ renderTokens v
 
 -- | Renders 'Parsed' or 'Failed' value as string
 renderParsed :: Parsed JValue -> String

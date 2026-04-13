@@ -1,11 +1,11 @@
 {-# OPTIONS_GHC -Wall #-}
+
 -- The above pragma enables all warnings
 
 module ParserCombinators where
 
-import Parser
-
 import Control.Applicative
+import Parser
 
 -- | Parses single character
 --
@@ -15,7 +15,6 @@ import Control.Applicative
 -- Parsed 'b' (Position 1 "ar")
 -- >>> parse (char 'b') "abc"
 -- Failed [Position 0 (Unexpected 'a')]
---
 char :: Char -> Parser Char
 char = error "TODO: define char"
 
@@ -27,7 +26,6 @@ char = error "TODO: define char"
 -- Parsed "ba" (Position 2 "r")
 -- >>> parse (string "ba") "abc"
 -- Failed [Position 0 (Unexpected 'a')]
---
 string :: String -> Parser String
 string = error "TODO: define string"
 
@@ -41,7 +39,6 @@ string = error "TODO: define string"
 -- Parsed () (Position 0 "bar")
 -- >>> parse (spaces *> string "bar") "bar"
 -- Parsed "bar" (Position 3 "")
---
 spaces :: Parser ()
 spaces = error "TODO: define spaces"
 
@@ -56,7 +53,6 @@ spaces = error "TODO: define spaces"
 -- Failed [Position 0 (Unexpected 'f')]
 -- >>> parse (choice [string "ba", string "bar"]) "bar"
 -- Parsed "ba" (Position 2 "r")
---
 choice :: (Foldable t, Alternative f) => t (f a) -> f a
 choice = error "TODO: define choice"
 
