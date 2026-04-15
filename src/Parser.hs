@@ -25,6 +25,7 @@ where
 
 import Control.Applicative
 import Control.Arrow
+import Data.List
 
 -- | Value annotated with position of parsed input starting from 0
 data Position a = Position Int a
@@ -88,7 +89,7 @@ instance Alternative Parser where
     where
       runParser input = case (a &&& b) input of
         (parsed@(Parsed _ _), _) -> parsed
-        (Failed l, Failed r) -> Failed (l ++ r)
+        (Failed l, Failed r) -> Failed (nub (l ++ r))
         (_, r) -> r
 
 -- | Parses single character satisfying given predicate
