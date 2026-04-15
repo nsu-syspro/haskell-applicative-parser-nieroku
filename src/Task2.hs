@@ -6,6 +6,7 @@ module Task2 where
 
 import Control.Applicative
 import Data.Functor
+import Data.List
 import Parser
 import ParserCombinators
 
@@ -76,7 +77,7 @@ date = choice [dotFormat, hyphenFormat, usFormat]
             sequenceA [char '2', digit],
             string "30",
             string "31",
-            sequenceA [nonZeroDigit]
+            singleton <$> nonZeroDigit
           ]
     day =
       Day . read
@@ -98,4 +99,4 @@ date = choice [dotFormat, hyphenFormat, usFormat]
     year = Year . read <$> some digit
 
     monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-    monthName = Month <$> choice (map (\(i, name) -> string name $> i) (zip [1 ..] monthNames))
+    monthName = Month <$> choice [string name $> i | (i, name) <- zip [1 ..] monthNames]

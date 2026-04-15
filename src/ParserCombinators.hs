@@ -67,11 +67,20 @@ choice = asum
 option :: a -> Parser a -> Parser a
 option a p = p <|> pure a
 
+optionM :: (Monoid m) => Parser m -> Parser m
+optionM = option mempty
+
 sepBy1 :: Parser a -> Parser b -> Parser [a]
 sepBy1 a sep = (:) <$> a <*> many (sep *> a)
 
+sepBy :: Parser a -> Parser b -> Parser [a]
+sepBy a sep = optionM (sepBy1 a sep)
+
 count :: Int -> Parser a -> Parser [a]
 count = replicateM
+
+block :: Char -> Char -> Parser a -> Parser a
+block o c p = char o *> p <* char c
 
 nonZeroDigit :: Parser Char
 nonZeroDigit = satisfy (\c -> isDigit c && c /= '0')
