@@ -44,12 +44,12 @@ json :: Parser JValue
 json = whitespace *> choice [jobject, jarray, jstring, jnumber, jbool, jnull]
 
 jobject :: Parser JValue
-jobject = block '{' '}' (JObject <$> sepBy keyValue (whitespace <* char ',') <* whitespace)
+jobject = block "{" "}" (JObject <$> sepBy keyValue (whitespace <* char ',') <* whitespace)
   where
     keyValue = whitespace *> pure (,) <*> jsonString <* whitespace <* char ':' <*> json
 
 jarray :: Parser JValue
-jarray = block '[' ']' (JArray <$> sepBy json (whitespace *> char ',') <* whitespace)
+jarray = block "[" "]" (JArray <$> sepBy json (whitespace *> char ',') <* whitespace)
 
 jstring :: Parser JValue
 jstring = JString <$> jsonString
@@ -72,7 +72,7 @@ whitespace :: Parser ()
 whitespace = many (satisfy (flip elem [' ', '\n', '\r', '\t'])) $> ()
 
 jsonString :: Parser String
-jsonString = block '"' '"' $ concat <$> many (choice [character, escapeSequence, uEscapeSequence])
+jsonString = block "\"" "\"" $ concat <$> many (choice [character, escapeSequence, uEscapeSequence])
   where
     shouldBeEscaped c = isControl c || c `elem` ['"', '\\']
 

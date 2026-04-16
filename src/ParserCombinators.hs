@@ -79,8 +79,8 @@ sepBy a sep = optionM (sepBy1 a sep)
 count :: Int -> Parser a -> Parser [a]
 count = replicateM
 
-block :: Char -> Char -> Parser a -> Parser a
-block o c p = char o *> p <* char c
+block :: String -> String -> Parser a -> Parser a
+block o c p = string o *> p <* string c
 
 nonZeroDigit :: Parser Char
 nonZeroDigit = satisfy (\c -> isDigit c && c /= '0')
